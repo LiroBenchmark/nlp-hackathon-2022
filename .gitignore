@@ -1,3 +1,6 @@
+.idea/
+diac_challenge/tbl.wordform.ro
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
