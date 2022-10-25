@@ -7,7 +7,7 @@ class Evaluator():
     diac_map = {'ț': 't', 'ș': 's', 'Ț': 'T', 'Ș': 'S', 'Ă': 'A', 'ă': 'a', 'Â': 'A', 'â': 'a', 'Î': 'I', 'î': 'i'}
 
     def __init__(self, tbl_wordform_file=None):
-        import os, unidecode
+        import os
 
         # load and process tbl.wordform.ro
         if tbl_wordform_file is None:
