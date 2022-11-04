@@ -42,7 +42,7 @@ def <your_model_name>():
     # use this place to run the prediction
     # the output of this function is a single value, the Pearson correlation on the similarity score column of the test data and the predicted similiarity scores for each pair of texts in the test data.
 ```
-- Install git lfs following the instructions [here](https://git-lfs.github.com/)
+- Install git lfs (for large files) following the instructions [here](https://git-lfs.github.com/)
 - Commit those files to the main LiRo repository:
 
 		git add ``model.bin`` ``file.py``
