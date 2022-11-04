@@ -11,13 +11,13 @@ This repo hosts utilities for the LiRo NLP Hackathon - held on the 5th of Novemb
 - next clone that repository to local and add the trained model and a python script to run the model.
 
 		git clone https://github.com/user_name/nlp-hackathon-2022
-		cd nlp-hackathon-2022
-		mkdir upload
-		cd upload
-  		mkdir ``team_name``
-  		cd ``team_name``
-  		mkdir ``task_N``
-  		cd ``task_N``
+	cd nlp-hackathon-2022
+	mkdir upload
+	cd upload
+  	mkdir ``team_name``
+  	cd ``team_name``
+  	mkdir ``task_N``
+  	cd ``task_N``
 
 - ``team_name`` is a folder with the name of your team
 - ``task_N`` folder represents the folder coresponding to one of the first 5 tasks from the first challenge
