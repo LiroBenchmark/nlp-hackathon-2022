@@ -14,10 +14,10 @@ This repo hosts utilities for the LiRo NLP Hackathon - held on the 5th of Novemb
 		cd nlp-hackathon-2022
 		mkdir upload
 		cd upload
-  		mkdir ``team_name``
-  		cd ``team_name``
-  		mkdir ``task_N``
-  		cd ``task_N``
+  		mkdir team_name
+  		cd team_name
+  		mkdir task_N
+  		cd task_N
 
 - ``team_name`` is a folder with the name of your team
 - ``task_N`` folder represents the folder coresponding to one of the first 5 tasks from the first challenge
@@ -45,7 +45,7 @@ def <your_model_name>():
 - Install git lfs (for large files) following the instructions [here](https://git-lfs.github.com/)
 - Commit those files to your LiRo repository:
 
-		git add ``model.bin`` ``file.py``
+		git add model.bin file.py
 		git commit -m "lorep ipsum"
 		git push origin main
 
