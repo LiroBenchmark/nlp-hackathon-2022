@@ -139,16 +139,18 @@ class MyModel:
         with open(input_file, 'r') as in_f, open(output_file, 'w') as out_f:
             for text_without_diacritics in in_f:
 
-                text_without_diacritics = "romanian to english:" + text_without_diacritics
+                text_without_diacritics = text_without_diacritics.strip()
+
+                text_without_diacritics = remove_diacritics_example(text_without_diacritics)
 
                 input_ids = tokenizer(text_without_diacritics, padding="max_length", return_tensors="pt").input_ids
 
-                outputs = self.model.generate(input_ids, max_length=50)
+                outputs = self.model.generate(input_ids, max_length=60)
 
-                text_with_diacritics = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                text_with_diacritics = tokenizer.decode(outputs[0][1:-1], skip_special_tokens=True)
 
-                if not is_valid_diacritization(text_with_diacritics, text_without_diacritics):
-                    print("Not valid diacritization! :(")
+                # if not is_valid_diacritization(text_with_diacritics, text_without_diacritics):
+                #     print("Not valid diacritization! :(")
 
                 out_f.write(text_with_diacritics)
                 out_f.write("\n")
@@ -158,7 +160,7 @@ class MyModel:
 
 def main():
     model = MyModel()
-
+    model.load("model_resource_folder")
     model.predict("input.txt", "output.txt")
 
 
