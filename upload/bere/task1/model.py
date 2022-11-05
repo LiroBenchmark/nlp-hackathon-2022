@@ -533,7 +533,7 @@ class MyModel:
         self.gcnn_size = 512
         self.emb_and_lstm_and_gcnn = 0
         self.emb_ckpt_file = ""
-        self.extra_train_file = os.path.join(os.path.basename(__file__), "dataset-v11-38k.json")
+        self.extra_train_file = os.path.join(os.path.dirname(__file__), "dataset-v11-38k.json")
 
         assert self.optimizer in ["AdamW", "SGD"]
 
