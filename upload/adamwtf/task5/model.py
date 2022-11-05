@@ -1,10 +1,14 @@
+import json
 import os
+from collections import defaultdict
 
 import numpy as np
 import torch
 import transformers
 from torch import optim
 from tqdm.auto import tqdm
+
+from diac_challenge.diac import Evaluator
 
 DIAC_MAP = {'ț': 't', 'ș': 's', 'Ț': 'T', 'Ș': 'S', 'Ă': 'A', 'ă': 'a', 'Â': 'A', 'â': 'a', 'Î': 'I', 'î': 'i'}
 
@@ -83,7 +87,8 @@ class MyModel:
     def load(self, model_resource_folder):
         # we'll call this code before prediction
         # use this function to load any pretrained model and any other resource, from the given folder path
-        self.model.load_state_dict(torch.load(os.path.join(model_resource_folder, "model.pth.tar")))
+        self.model.load_state_dict(
+            torch.load(os.path.join(model_resource_folder, "model.pth.tar"), map_location=self.device))
 
     # *** OPTIONAL ***
     def train(self, train_data_file, validation_data_file, model_resource_folder):
@@ -128,40 +133,71 @@ class MyModel:
         torch.save(self.model.state_dict(), os.path.join(model_resource_folder, "model.pth.tar"))
 
     def predict(self, input_file, output_file):
-        # we'll call this function after the load()
-        # use this place to run the prediction
-        # the input is a file that does not contain diacritics
-        # the output is a file that contains diacritics and,
-        #    **is identical at character level** with the input file,
-        #   excepting replaced diacritic letters
         self.model.eval()
+        self.model = self.model.to(self.device)
 
         with open(input_file, 'r') as in_f, open(output_file, 'w') as out_f:
-            for text_without_diacritics in in_f:
-
+            for text_without_diacritics in tqdm(in_f):
                 text_without_diacritics = text_without_diacritics.strip()
-
                 text_without_diacritics = remove_diacritics_example(text_without_diacritics)
+                input_ids = tokenizer(text_without_diacritics.lower(), padding="max_length",
+                                      return_tensors="pt").input_ids
 
-                input_ids = tokenizer(text_without_diacritics, padding="max_length", return_tensors="pt").input_ids
+                input_ids = input_ids.to(self.device)
+                outputs = self.model.generate(input_ids, max_length=55)
 
-                outputs = self.model.generate(input_ids, max_length=60)
-
-                text_with_diacritics = tokenizer.decode(outputs[0][1:-1], skip_special_tokens=True)
-
-                # if not is_valid_diacritization(text_with_diacritics, text_without_diacritics):
-                #     print("Not valid diacritization! :(")
+                text_with_diacritics = tokenizer.decode(outputs[0][1:-1], skip_special_tokens=True).capitalize()
+                text_with_diacritics = text_with_diacritics.replace("ţ", "ț").replace("ş", "ș").replace("Ţ",
+                                                                                                        "Ț").replace(
+                    "Ş", "Ș")
 
                 out_f.write(text_with_diacritics)
                 out_f.write("\n")
+
 
 # ================================================================================================================
 
 
 def main():
-    model = MyModel()
-    model.load("model_resource_folder")
-    model.predict("input.txt", "output.txt")
+    # model = MyModel()
+    # model.load("model_resource_folder")
+    # model.predict(os.path.join("model_resource_folder", "test1k.txt"), os.path.join("model_resource_folder", "output1k.txt"))
+
+    evaluator = Evaluator()  # this will take a few seconds to download requirements in the background and construct cache silently
+
+    all_metrics = defaultdict(list)
+    final_metrics = {}
+    with open(os.path.join("model_resource_folder", "test1k.txt"), 'r') as gold_file, open(
+            os.path.join("model_resource_folder", "predictions_4.txt"), 'r') as pred_file:
+        for (line_gold, line_pred) in zip(gold_file, pred_file):
+            metrics = evaluator.evaluate(line_gold, line_pred)
+
+            all_metrics['word_all'].append(metrics['word_all'])
+            all_metrics['word_target'].append(metrics['word_target'])
+            all_metrics['strict_word_target'].append(metrics['strict_word_target'])
+            all_metrics['character_all'].append(metrics['character_all'])
+            all_metrics['character_target'].append(metrics['character_target'])
+            all_metrics['_word_count'].append(metrics['_word_count'])
+            all_metrics['_target_word_count'].append(metrics['_target_word_count'])
+            all_metrics['_strict_target_word_count'].append(metrics['_strict_target_word_count'])
+            all_metrics['_character_count'].append(metrics['_character_count'])
+            all_metrics['_target_character_count'].append(metrics['_target_character_count'])
+
+        final_metrics['word_all'] = np.mean(all_metrics['word_all'])
+        final_metrics['word_target'] = np.mean(all_metrics['word_target'])
+        final_metrics['strict_word_target'] = np.mean(all_metrics['strict_word_target'])
+        final_metrics['character_all'] = np.mean(all_metrics['character_all'])
+        final_metrics['character_target'] = np.mean(all_metrics['character_target'])
+        final_metrics['_word_count'] = np.sum(all_metrics['_word_count'])
+        final_metrics['_target_word_count'] = np.sum(all_metrics['_target_word_count'])
+        final_metrics['_strict_target_word_count'] = np.sum(all_metrics['_strict_target_word_count'])
+        final_metrics['_character_count'] = np.sum(all_metrics['_character_count'])
+        final_metrics['_target_character_count'] = np.sum(all_metrics['_target_character_count'])
+
+    with open(os.path.join("model_resource_folder", 'metrics.json'), 'w') as fp:
+        json.dump(final_metrics, fp)
+
+    print(final_metrics)
 
 
 if __name__ == '__main__':
