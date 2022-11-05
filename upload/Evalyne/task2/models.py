@@ -17,6 +17,9 @@ from keras.models import Sequential
 from keras.layers import Dense, Input, LSTM, Embedding, Dropout, GRU
 from keras.layers import Bidirectional
 import tensorflow as tf
+!pip install transformers
+import torch
+import numpy
 
 # setup data
 !wget -q https://raw.githubusercontent.com/Alegzandra/RED-Romanian-Emotions-Dataset/main/REDv2/data/train.json
@@ -40,6 +43,13 @@ class MyModel():
     self.train_data = None
     self.vocab_size = 4088
     self.max_length = 105
+    self.test_data = self.generate(self.df_test_dataset)
+    self.validate_data =self.generate(self.df_valid_dataset)
+    self.train_labels = numpy.array(self.df_train_dataset['agreed_lables'].tolist())
+    self.validate_labels = numpy.array(self.df_val_dataset['agreed_lables'].tolist())
+    
+
+
   
 
   def create_df(self, dataset):
@@ -50,6 +60,32 @@ class MyModel():
       labels.append(item['agreed_labels'])
       # convert the lists into a dataframe
       return pd.DataFrame(list(zip(text, labels)), columns=['text','agreed_lables'])
+
+
+  def generate(self, dataset):
+    # pytorch
+    from transformers import AutoModel, AutoTokenizer, AutoModel
+    tokenizer = AutoTokenizer.from_pretrained("readerbench/RoBERT-small")
+    model = AutoModel.from_pretrained("readerbench/RoBERT-small")
+
+    data = []
+    sentences = dataset['text'].tolist()
+    for sentence in sentences:
+      inputs = tokenizer(sentence, return_tensors="pt")
+      data.append(inputs['input_ids'].detach().numpy())
+
+    new_list =  []
+    for arr in data:
+      lst = arr.tolist()
+      new_list.append(lst[0])
+
+    
+
+    import tensorflow as tf
+    padding= tf.keras.preprocessing.sequence.pad_sequences(new_list, padding= 'post', maxlen= 105)
+  
+
+    return padding
 
   def load(self, model_resource_folder):
     # we'll call this code before prediction
@@ -77,11 +113,10 @@ class MyModel():
 
     model_BIGRU.summary()
 
-    train_labels = numpy.array(df_train_dataset['agreed_lables'].tolist())
-    validate_labels = numpy.array(df_val_dataset['agreed_lables'].tolist())
+    
 
     # fit the BIGRU model
-    GRU_model = model_BIGRU.fit(padded_inputs, train_labels, epochs=40, validation_data=(padded_validate, validate_labels), batch_size=150, shuffle=True)
+    GRU_model = model_BIGRU.fit(self.train_data, self.train_labels, epochs=40, validation_data=(self.validate_data, self.validate_labels), batch_size=150, shuffle=True)
 
   #def predict(self, test_json_file):
     # we'll call this function after the load()
