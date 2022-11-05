@@ -5,10 +5,13 @@ diac_challenge/tbl.wordform.ro
 __pycache__/
 *.py[cod]
 *$py.class
-
+.DS_Store
 # C extensions
 *.so
+*.bin
+wandb/
 
+*.ckpt
 # Distribution / packaging
 .Python
 build/
