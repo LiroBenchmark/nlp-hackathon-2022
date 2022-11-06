@@ -2,7 +2,7 @@ import regex as re
 
 class Evaluator():
     diacs = set(['ț', 'ș', 'Ț', 'Ș', 'Ă', 'ă', 'Â', 'â', 'Î', 'î'])
-    non_diacs = set(['a', 't', 'i', 's'])
+    non_diacs = set(['a', 't', 'i', 's', 'A', 'T', 'I', 'S'])
     target_chars = diacs.union(non_diacs)
     diac_map = {'ț': 't', 'ș': 's', 'Ț': 'T', 'Ș': 'S', 'Ă': 'A', 'ă': 'a', 'Â': 'A', 'â': 'a', 'Î': 'I', 'î': 'i'}
 
